@@ -11,7 +11,7 @@ from utils import (
     wasserstein_penalty_func,
     norm22
 )
-from mnist.src.config import (
+from config import (
     knobs,
     log_dir_local_time,
     log_dir_last_modified,

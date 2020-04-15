@@ -3,15 +3,15 @@ import torchvision
 
 from torch.utils.tensorboard import SummaryWriter
 
-from mnist.src.models import Encoder, Decoder, Discriminator
-from mnist.src.preprocessing import get_loader, inv_standardize
-from mnist.src.utils import (
+from models import Encoder, Decoder, Discriminator
+from preprocessing import get_loader, inv_standardize
+from utils import (
     Collector,
     reconstruction_loss_func,
     imq_mmd_func,
     norm22
 )
-from mnist.src.config import (
+from config import (
     knobs,
     log_dir_local_time,
     log_dir_last_modified,
