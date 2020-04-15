@@ -50,8 +50,8 @@ knobs['lr_encoder'] = 1e-4
 knobs['lr_decoder'] = 1e-4
 knobs['lr_discriminator'] = knobs['lr_encoder']
 knobs['hidden_dim'] = 8
-knobs['lambda_reconstruction'] = 0.05
-knobs['lambda_penalty'] = 10.
+knobs['lambda_reconstruction'] = 1.
+knobs['lambda_penalty'] = 1.
 knobs['wasserstein_penalty'] = knobs['lambda_penalty']
 knobs['lambda_fooling_term'] = 1.
 knobs['gamma'] = 0.2
@@ -61,20 +61,20 @@ knobs['max_norm_encoder'] = 5.  # (average norm of gradients: 50)
 knobs['max_norm_decoder'] = 15.  # (average norm of gradients: 150)
 knobs['max_norm_discriminator'] = knobs['max_norm_encoder']
 knobs['clip_gradient'] = False
-knobs['resume'] = False
+knobs['fast_models'] = True
+knobs['resume'] = True
 
 """
 ----------------------------------------------------------------------------------------
 Configurations
 ----------------------------------------------------------------------------------------
 Configurations #1
-lambda_reconstruction: 1. -> 0.05
-max_norm_encoder: 5.
-max_norm_decoder: 15.
-max_norma_discriminator: 35.
+Model: acwwai
+lambda_reconstruction: 0.05
+clip_gradient: False
+
 
 Configurations #2
-estimate a mean of the norm of each gradient
-max_norm_*: 35.
+max_norm_*: 
 ----------------------------------------------------------------------------------------
 """

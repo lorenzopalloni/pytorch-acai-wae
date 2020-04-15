@@ -3,8 +3,11 @@ import torchvision
 
 from torch.utils.tensorboard import SummaryWriter
 
-from models import Encoder, Decoder, Discriminator
 from preprocessing import get_loader, inv_standardize
+from models import (
+    Encoder, Decoder, Discriminator,
+    FastEncoder, FastDecoder, FastDiscriminator
+)
 from utils import (
     Collector,
     reconstruction_loss_func,
@@ -22,9 +25,14 @@ from config import (
 
 loader = get_loader()
 
-encoder = Encoder().to(knobs["device"])
-decoder = Decoder().to(knobs["device"])
-discriminator = Discriminator().to(knobs["device"])
+if knobs["fast_models"]:
+    encoder = FastEncoder().to(knobs["device"])
+    decoder = FastDecoder().to(knobs["device"])
+    discriminator = FastDiscriminator().to(knobs["device"])
+else:
+    encoder = Encoder().to(knobs["device"])
+    decoder = Decoder().to(knobs["device"])
+    discriminator = Discriminator().to(knobs["device"])
 
 opt_encoder = torch.optim.Adam(encoder.parameters(), lr=knobs["lr_encoder"])
 opt_decoder = torch.optim.Adam(decoder.parameters(), lr=knobs["lr_decoder"])
@@ -39,8 +47,6 @@ collector_error_discriminator = Collector()
 collector_heuristic_discriminator = Collector()
 collector_codes_min = Collector()
 collector_codes_max = Collector()
-collector_codes_fake_min = Collector()
-collector_codes_fake_max = Collector()
 if knobs["resume"]:
     writer = SummaryWriter(log_dir_last_modified)
     checkpoint = torch.load(checkpoints_dir_last_modified)
@@ -90,8 +96,12 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
         opt_decoder.zero_grad()
         loss_autoencoder.backward(retain_graph=True)
         if knobs["clip_gradient"]:
-            torch.nn.utils.clip_grad_norm_(encoder.parameters(), knobs["max_norm_encoder"])
-            torch.nn.utils.clip_grad_norm_(decoder.parameters(), knobs["max_norm_decoder"])
+            torch.nn.utils.clip_grad_norm_(
+                encoder.parameters(), knobs["max_norm_encoder"]
+            )
+            torch.nn.utils.clip_grad_norm_(
+                decoder.parameters(), knobs["max_norm_decoder"]
+            )
         opt_encoder.step()
         opt_decoder.step()
 
@@ -119,8 +129,6 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
             )
             collector_codes_min.append(codes.min().cpu().numpy())
             collector_codes_max.append(codes.max().cpu().numpy())
-            collector_codes_fake_min.append(codes_fake.min().cpu().numpy())
-            collector_codes_fake_max.append(codes_fake.max().cpu().numpy())
 
         if iteration % knobs["time_to_collect"] == 0:
             encoder.eval()
@@ -162,10 +170,16 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                 collector_heuristic_discriminator.mean(),
                 iteration,
             )
-            writer.add_scalar("codes_min", collector_codes_min.min(), iteration)
-            writer.add_scalar("codes_max", collector_codes_max.max(), iteration)
-            writer.add_scalar("codes_fake_min", collector_codes_fake_min.min(), iteration)
-            writer.add_scalar("codes_fake_max", collector_codes_fake_max.max(), iteration)
+            writer.add_scalar(
+                "codes_min_over_20_obs",
+                collector_codes_min.min(),
+                iteration
+            )
+            writer.add_scalar(
+                "codes_max_over_20_obs",
+                collector_codes_max.max(),
+                iteration
+            )
 
             if iteration % (knobs["time_to_collect"] * 4) == 0:
 

@@ -103,8 +103,16 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
             writer.add_scalar(
                 "imq_mmd_average_20_obs", collector_imq_mmd.mean(), iteration
             )
-            writer.add_scalar("codes_min", collector_codes_min.min(), iteration)
-            writer.add_scalar("codes_max", collector_codes_max.max(), iteration)
+            writer.add_scalar(
+                "codes_min_over_20_obs",
+                collector_codes_min.min(),
+                iteration
+            )
+            writer.add_scalar(
+                "codes_max_over_20_obs",
+                collector_codes_max.max(),
+                iteration
+            )
 
             if iteration % (knobs["time_to_collect"] * 4) == 0:
 

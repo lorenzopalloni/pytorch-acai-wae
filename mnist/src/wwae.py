@@ -107,8 +107,16 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                 collector_wasserstein_penalty.mean(),
                 iteration
             )
-            writer.add_scalar("codes_min", collector_codes_min.min(), iteration)
-            writer.add_scalar("codes_max", collector_codes_max.max(), iteration)
+            writer.add_scalar(
+                "codes_min_over_20_obs",
+                collector_codes_min.min(),
+                iteration
+            )
+            writer.add_scalar(
+                "codes_max_over_20_obs",
+                collector_codes_max.max(),
+                iteration
+            )
 
             if iteration % (knobs["time_to_collect"] * 4) == 0:
 
