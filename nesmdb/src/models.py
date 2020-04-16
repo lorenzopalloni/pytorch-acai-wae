@@ -101,6 +101,7 @@ class Decoder(torch.nn.Module):
         super().__init__()
         self.main = torch.nn.Sequential(
             torch.nn.Linear(knobs['hidden_dim'], 256 * 139),
+            torch.nn.ReLU(inplace=True),
             Lambda(lambda x: x.view(-1, 256, 139)),
             torch.nn.ConvTranspose1d(256, 128, 4, 2, 2),  # 139 -> 276
             torch.nn.BatchNorm1d(128),

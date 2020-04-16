@@ -67,184 +67,259 @@
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
-\frametitle{}
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Entity Embedding}
-    \begin{itemize}
-        \item Entity Embedding
-%        \item (during a training of a neural network model)
-        \item maps each state of a categorical variable
-    \end{itemize}
-    \begin{center}
-        $x \in \Big\{\ \text{'\textcolor{red}{red}'},\ \text{'\textcolor{green}{green}'},\ \text{'\textcolor{blue}{blue}'}\ \Big\}$
-    \end{center}
-    \begin{itemize}
-        \item in a $D$-dimensional Euclidean space
-        \item where $D \in \mathbb{N}^+$ is user-defined\footnote{$D$ might be chosen in range $[1,\ K - 1]$.}
-    \end{itemize}
-    \begin{center}
-        $x \in \Big\{\ [0.5,\ -1.2],\ [1.3,\ 0.23],\ [0.4,\ 1.1]\ \Big\}$.
-    \end{center}
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-    \frametitle{Motivation}
-    \begin{itemize}
-        \item Let $x$ be a categorical variable with
-            \begin{center}
-                $\mathbf{11981}$ different states.
-            \end{center}
-    \end{itemize}
-    \begin{itemize}
-        \item One Hot Encoding representation of $x$ needs
-            \begin{center}
-                $\mathbf{11981}$-dimensional vectors.
-            \end{center}
-    \end{itemize}
-    \begin{itemize}
-        \item Entity Embedding representation of $x$ might be e.g.
-            \begin{center}
-                $\mathbf{19}$-dimensional vectors.
-            \end{center}
-    \end{itemize}
-\medskip
-    \begin{itemize}
-        \item Explosions in dimensionality like this leads to
-            \begin{enumerate}
-                \item drop in prediction performance (overfitting);
-                \item computational cost in space and time.
-            \end{enumerate}
-    \end{itemize}
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-    \frametitle{Experiments - Dataset}
-    \begin{itemize}
-        \item Dataset take from a Kaggle competition called
-        \begin{itemize}
-            \item[$\rightarrow$] Categorical Feature Encoding Challenge;
-        \end{itemize}
-        \begin{itemize}
-            \item $300k$ observations;
-            \item $23$ variables (all categorical);
-            \item binary problem ($y \in \{0, 1\}$).
-        \end{itemize}
+  \begin{itemize}
+    \item An "high-quality" interpolation point have two characteristics:
+    \medskip
+      \begin{itemize}
+        \item is indistinguishable from real data
         \medskip
-        \item Dataset divided into
-        \begin{itemize}
-            \item 80\% $\rightarrow$ train
-            \item 20\% $\rightarrow$ test
-        \end{itemize}
-    \end{itemize}
+        \item represent a semantically smooth morphing between the endpoints
+      \end{itemize}
+  \end{itemize}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
-    \frametitle{Experiments - Neural Network hyperparameters}
-    \begin{itemize}
-        \item To extract the Entity Embeddings we use the following architecture:
-        \begin{enumerate}
-            \item input layer: concatenation of embedded features + other variables;
-            \item first layer: 400 hidden units and ReLU activation;
-            \item second layer: 600 hidden units and ReLU activation;
-            \item output layer: logistic function.
-        \end{enumerate}
-        \medskip
-        \item Training hyperparameters:
-        \begin{itemize}
-            \item number of epochs: 2
-            \item number of observations per mini-batch: 32
-            \item optimization algorithm: Adam\cite{adam} (default values)
-        \end{itemize}
-        \medskip
-        \item Implementation in Tensorflow\cite{tf}.
-    \end{itemize}
+\frametitle{Techniques implemented (using pytorch)}
+  \begin{itemize}
+    \item ACAI (Adversarially Constrained Autoencoder Interpolations)
+    \medskip
+    \item WAE (Wasserstein Autoencoder)
+    \medskip
+    \item WWAE (Wasserstein-Wassertein Autoencoder)
+  \end{itemize}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
-    \frametitle{Experiments - Random Forest hyperparameters}
-    \begin{itemize}
-        \item \textbf{Random search} with $4$-fold \textbf{cross-validation} on:
-        \begin{itemize}
-            \item number of decision trees:
-            \begin{itemize}
-                \item 125
-                \item[$\rightarrow\bullet$] 175
-            \end{itemize}
-            \item maximum number of features used by each tree in each split:
-            \begin{itemize}
-                \item[$\rightarrow\bullet$] 'sqrt'
-                \item 'log2'
-            \end{itemize}
-            \item max depth of each tree:
-            \begin{itemize}
-                \item 10
-                \item[$\rightarrow\bullet$] 20
-                \item None
-            \end{itemize}
-            \item minimum number of samples needed to perform a split:
-            \begin{itemize}
-                \item 2
-                \item[$\rightarrow\bullet$] 6
-            \end{itemize}
-        \end{itemize}
-    \end{itemize}
+\frametitle{ACAI}
+
 \end{frame}
-%-----------------------------------------------------------------------------
-%-----------------------------------------------------------------------------
-%\begin{frame}
-%\begin{tabular}{lrrrrr}
-%\toprule
-%{} &             0 &             1 &  accuracy     \\
-%\midrule
-%precision &      0.750514 &      0.623508 &  0.731533       \\
-%recall    &      0.918996 &      0.305136 &  0.731533       \\
-%f1-score  &      0.826254 &      0.409747 &  0.731533       \\
-%support   &  41677        &  18323        &  60000          \\
-%\bottomrule
-%\end{tabular}
-%\end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
-    \frametitle{Experiments - Random Forest Results}
-    \begin{table}
-      \centering
-      \begin{tabular}{lr}
-        \toprule
-        \multicolumn{2}{r}{AUC} \\
-        \cmidrule(r){1-2}
-        Train   & $0.9879$        \\
-        Test    & $\bm{0.6121}$ \\
-        \bottomrule
-      \end{tabular}
-      \caption{Random Forest + Entity Embeddings results.}
-    \end{table}
-    \begin{table}
-      \centering
-      \begin{tabular}{lr}
-        \toprule
-        \multicolumn{2}{r}{AUC} \\
-        \cmidrule(r){1-2}
-        Train   & $0.6818$     \\
-        Test    & $\bm{0.5640}$ \\
-        \bottomrule
-      \end{tabular}
-        \caption{Random Forest + One Hot Encoding\footnote{Variables with max 50 states used.} results.}
-    \end{table}
+\frametitle{WAE}
+
 \end{frame}
-%\begin{tabular}{lrrr}
-%    \begin{center}
-%        \toprule
-%{} &             0 &             1 &  accuracy     \\
-%\midrule
-%precision &      0.750514 &      0.623508 &  0.731533       \\
-%recall    &      0.918996 &      0.305136 &  0.731533       \\
-%f1-score  &      0.826254 &      0.409747 &  0.731533       \\
-%support   &  41677        &  18323        &  60000          \\
-%\bottomrule
-%\end{tabular}
-%\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{WWAE}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Results on MNIST}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Problems encoutered}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Other applications}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Conclusion}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Appendix - Wasserstein distance}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Appendix - Maximum Mean Discrepancy}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Appendix - Inverse Multiquadratic kernel}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Appendix - Frechèt distance between two Multinormals}
+
+\end{frame}
+%-----------------------------------------------------------------------------
+%
+% \begin{frame}
+% \frametitle{Entity Embedding}
+%     \begin{itemize}
+%         \item Entity Embedding
+% %        \item (during a training of a neural network model)
+%         \item maps each state of a categorical variable
+%     \end{itemize}
+%     \begin{center}
+%         $x \in \Big\{\ \text{'\textcolor{red}{red}'},\ \text{'\textcolor{green}{green}'},\ \text{'\textcolor{blue}{blue}'}\ \Big\}$
+%     \end{center}
+%     \begin{itemize}
+%         \item in a $D$-dimensional Euclidean space
+%         \item where $D \in \mathbb{N}^+$ is user-defined\footnote{$D$ might be chosen in range $[1,\ K - 1]$.}
+%     \end{itemize}
+%     \begin{center}
+%         $x \in \Big\{\ [0.5,\ -1.2],\ [1.3,\ 0.23],\ [0.4,\ 1.1]\ \Big\}$.
+%     \end{center}
+% \end{frame}
+% %-----------------------------------------------------------------------------
+% \begin{frame}
+%     \frametitle{Motivation}
+%     \begin{itemize}
+%         \item Let $x$ be a categorical variable with
+%             \begin{center}
+%                 $\mathbf{11981}$ different states.
+%             \end{center}
+%     \end{itemize}
+%     \begin{itemize}
+%         \item One Hot Encoding representation of $x$ needs
+%             \begin{center}
+%                 $\mathbf{11981}$-dimensional vectors.
+%             \end{center}
+%     \end{itemize}
+%     \begin{itemize}
+%         \item Entity Embedding representation of $x$ might be e.g.
+%             \begin{center}
+%                 $\mathbf{19}$-dimensional vectors.
+%             \end{center}
+%     \end{itemize}
+% \medskip
+%     \begin{itemize}
+%         \item Explosions in dimensionality like this leads to
+%             \begin{enumerate}
+%                 \item drop in prediction performance (overfitting);
+%                 \item computational cost in space and time.
+%             \end{enumerate}
+%     \end{itemize}
+% \end{frame}
+% %-----------------------------------------------------------------------------
+% \begin{frame}
+%     \frametitle{Experiments - Dataset}
+%     \begin{itemize}
+%         \item Dataset take from a Kaggle competition called
+%         \begin{itemize}
+%             \item[$\rightarrow$] Categorical Feature Encoding Challenge;
+%         \end{itemize}
+%         \begin{itemize}
+%             \item $300k$ observations;
+%             \item $23$ variables (all categorical);
+%             \item binary problem ($y \in \{0, 1\}$).
+%         \end{itemize}
+%         \medskip
+%         \item Dataset divided into
+%         \begin{itemize}
+%             \item 80\% $\rightarrow$ train
+%             \item 20\% $\rightarrow$ test
+%         \end{itemize}
+%     \end{itemize}
+% \end{frame}
+% %-----------------------------------------------------------------------------
+% \begin{frame}
+%     \frametitle{Experiments - Neural Network hyperparameters}
+%     \begin{itemize}
+%         \item To extract the Entity Embeddings we use the following architecture:
+%         \begin{enumerate}
+%             \item input layer: concatenation of embedded features + other variables;
+%             \item first layer: 400 hidden units and ReLU activation;
+%             \item second layer: 600 hidden units and ReLU activation;
+%             \item output layer: logistic function.
+%         \end{enumerate}
+%         \medskip
+%         \item Training hyperparameters:
+%         \begin{itemize}
+%             \item number of epochs: 2
+%             \item number of observations per mini-batch: 32
+%             \item optimization algorithm: Adam\cite{adam} (default values)
+%         \end{itemize}
+%         \medskip
+%         \item Implementation in Tensorflow\cite{tf}.
+%     \end{itemize}
+% \end{frame}
+% %-----------------------------------------------------------------------------
+% \begin{frame}
+%     \frametitle{Experiments - Random Forest hyperparameters}
+%     \begin{itemize}
+%         \item \textbf{Random search} with $4$-fold \textbf{cross-validation} on:
+%         \begin{itemize}
+%             \item number of decision trees:
+%             \begin{itemize}
+%                 \item 125
+%                 \item[$\rightarrow\bullet$] 175
+%             \end{itemize}
+%             \item maximum number of features used by each tree in each split:
+%             \begin{itemize}
+%                 \item[$\rightarrow\bullet$] 'sqrt'
+%                 \item 'log2'
+%             \end{itemize}
+%             \item max depth of each tree:
+%             \begin{itemize}
+%                 \item 10
+%                 \item[$\rightarrow\bullet$] 20
+%                 \item None
+%             \end{itemize}
+%             \item minimum number of samples needed to perform a split:
+%             \begin{itemize}
+%                 \item 2
+%                 \item[$\rightarrow\bullet$] 6
+%             \end{itemize}
+%         \end{itemize}
+%     \end{itemize}
+% \end{frame}
+% %-----------------------------------------------------------------------------
+% %-----------------------------------------------------------------------------
+% %\begin{frame}
+% %\begin{tabular}{lrrrrr}
+% %\toprule
+% %{} &             0 &             1 &  accuracy     \\
+% %\midrule
+% %precision &      0.750514 &      0.623508 &  0.731533       \\
+% %recall    &      0.918996 &      0.305136 &  0.731533       \\
+% %f1-score  &      0.826254 &      0.409747 &  0.731533       \\
+% %support   &  41677        &  18323        &  60000          \\
+% %\bottomrule
+% %\end{tabular}
+% %\end{frame}
+% %-----------------------------------------------------------------------------
+% \begin{frame}
+%     \frametitle{Experiments - Random Forest Results}
+%     \begin{table}
+%       \centering
+%       \begin{tabular}{lr}
+%         \toprule
+%         \multicolumn{2}{r}{AUC} \\
+%         \cmidrule(r){1-2}
+%         Train   & $0.9879$        \\
+%         Test    & $\bm{0.6121}$ \\
+%         \bottomrule
+%       \end{tabular}
+%       \caption{Random Forest + Entity Embeddings results.}
+%     \end{table}
+%     \begin{table}
+%       \centering
+%       \begin{tabular}{lr}
+%         \toprule
+%         \multicolumn{2}{r}{AUC} \\
+%         \cmidrule(r){1-2}
+%         Train   & $0.6818$     \\
+%         Test    & $\bm{0.5640}$ \\
+%         \bottomrule
+%       \end{tabular}
+%         \caption{Random Forest + One Hot Encoding\footnote{Variables with max 50 states used.} results.}
+%     \end{table}
+% \end{frame}
+% %\begin{tabular}{lrrr}
+% %    \begin{center}
+% %        \toprule
+% %{} &             0 &             1 &  accuracy     \\
+% %\midrule
+% %precision &      0.750514 &      0.623508 &  0.731533       \\
+% %recall    &      0.918996 &      0.305136 &  0.731533       \\
+% %f1-score  &      0.826254 &      0.409747 &  0.731533       \\
+% %support   &  41677        &  18323        &  60000          \\
+% %\bottomrule
+% %\end{tabular}
+% %\end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
 \frametitle{Conclusion}

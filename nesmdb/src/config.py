@@ -53,13 +53,13 @@ else:
     print('The program is running on CPU: CUDA not available.')
 knobs['device'] = torch.device('cuda')
 knobs['num_epochs'] = 10_000
-knobs['batch_size'] = 100
+knobs['batch_size'] = 64
 knobs['lr_encoder'] = 1e-3
 knobs['lr_decoder'] = 1e-3
 knobs['lr_discriminator'] = knobs['lr_encoder']
 knobs['hidden_dim'] = 8
 knobs['lambda_reconstruction'] = 1.
-knobs['lambda_penalty'] = 1.
+knobs['lambda_penalty'] = 0.1
 knobs['lambda_fooling_term'] = 1.
 knobs['gamma'] = 0.2
 knobs['sigma'] = 1.
@@ -68,9 +68,9 @@ knobs['max_norm_encoder'] = 35.
 knobs['max_norm_decoder'] = 35.
 knobs['max_norm_discriminator'] = 35.
 knobs['clip_gradient'] = False
-knobs['time_to_collect'] = 250
-knobs['fast_models'] = True
-knobs['resume'] = True
+knobs['time_to_collect'] = 200
+knobs['fast_models'] = False
+knobs['resume'] = False
 
 """
 -----------------------------------------------------------------------------------------
