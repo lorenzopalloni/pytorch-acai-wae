@@ -36,6 +36,8 @@ checkpoints_dir_last_modified = get_last_modified(checkpoints_dir)
 interpolations_dir = project_dir / 'interpolations'
 interpolations_dir.mkdir(exist_ok=True)
 
+torch.manual_seed(42)
+
 knobs = dict()
 if torch.cuda.is_available():
     knobs['device'] = torch.device('cuda')
@@ -44,10 +46,10 @@ else:
     knobs['device'] = torch.device('cpu')
     print('The program is running on CPU: CUDA not available.')
 knobs['device'] = torch.device('cuda')
-knobs['num_epochs'] = 100
+knobs['num_epochs'] = 1000
 knobs['batch_size'] = 100
-knobs['lr_encoder'] = 1e-4
-knobs['lr_decoder'] = 1e-4
+knobs['lr_encoder'] = 5e-5  # 1e-3 -> 1e-4 -> 5e-5
+knobs['lr_decoder'] = 5e-5  # 1e-3 -> 1e-4 -> 5e-5
 knobs['lr_discriminator'] = knobs['lr_encoder']
 knobs['hidden_dim'] = 8
 knobs['lambda_reconstruction'] = 1.
@@ -56,10 +58,10 @@ knobs['wasserstein_penalty'] = knobs['lambda_penalty']
 knobs['lambda_fooling_term'] = 1.
 knobs['gamma'] = 0.2
 knobs['sigma'] = 1.
-knobs['time_to_collect'] = 100
 knobs['max_norm_encoder'] = 5.  # (average norm of gradients: 50)
 knobs['max_norm_decoder'] = 15.  # (average norm of gradients: 150)
 knobs['max_norm_discriminator'] = knobs['max_norm_encoder']
+knobs['time_to_collect'] = 100
 knobs['clip_gradient'] = False
 knobs['fast_models'] = True
 knobs['resume'] = True
@@ -75,6 +77,6 @@ clip_gradient: False
 
 
 Configurations #2
-max_norm_*: 
+max_norm_*:
 ----------------------------------------------------------------------------------------
 """

@@ -1,29 +1,44 @@
 import torch
-import torchvision
 
 from torch.utils.tensorboard import SummaryWriter
 
-from models import Encoder, Decoder, Discriminator
-from preprocessing import get_loader, inv_standardize
+from preprocessing import BruteAudioLoader
+from models import (
+    Encoder, Decoder, Discriminator,
+    FastEncoder, FastDecoder, FastDiscriminator
+)
 from utils import (
     Collector,
     reconstruction_loss_func,
-    norm22
+    wasserstein_penalty_func,
+    norm22,
+    save_interpolations,
 )
 from config import (
     knobs,
+    audio_pool_csv,
     log_dir_local_time,
     log_dir_last_modified,
     checkpoints_dir_local_time,
     checkpoints_dir_last_modified,
-    interpolations_dir
+    interpolations_dir,
 )
 
-loader = get_loader()
+loader = BruteAudioLoader(audio_pool_csv, knobs["batch_size"])
+# loader = AudioLoader(
+#     "/home/lore/Projects/ml-project/audio/data/nesmdb_wav/examples/",
+#     knobs["batch_size"],
+#     n_jobs=knobs['n_jobs_loader']
+# )
 
-encoder = Encoder().to(knobs["device"])
-decoder = Decoder().to(knobs["device"])
-discriminator = Discriminator().to(knobs["device"])
+if knobs["fast_models"]:
+    encoder = FastEncoder().to(knobs["device"])
+    decoder = FastDecoder().to(knobs["device"])
+    discriminator = FastDiscriminator().to(knobs["device"])
+else:
+    encoder = Encoder().to(knobs["device"])
+    decoder = Decoder().to(knobs["device"])
+    discriminator = Discriminator().to(knobs["device"])
 
 opt_encoder = torch.optim.Adam(encoder.parameters(), lr=knobs["lr_encoder"])
 opt_decoder = torch.optim.Adam(decoder.parameters(), lr=knobs["lr_decoder"])
@@ -32,6 +47,7 @@ opt_discriminator = torch.optim.Adam(
 )
 
 collector_reconstruction_loss = Collector()
+collector_wasserstein_penalty = Collector()
 collector_fooling_term = Collector()
 collector_error_discriminator = Collector()
 collector_heuristic_discriminator = Collector()
@@ -71,12 +87,17 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
         )
         reconstructions_mix = decoder(codes_mix)
         predictions_mix = discriminator(reconstructions_mix)
+        codes_fake = (
+            torch.randn(knobs["batch_size"], knobs["hidden_dim"]) * knobs["sigma"]
+        ).to(knobs["device"])
 
         reconstruction_loss = reconstruction_loss_func(batch, reconstructions)
+        wasserstein_penalty = wasserstein_penalty_func(codes, codes_fake)
         fooling_term = norm22(predictions_mix)
         loss_autoencoder = (
-                knobs["lambda_reconstruction"] * reconstruction_loss
-                + knobs["lambda_fooling_term"] * fooling_term
+            knobs["lambda_reconstruction"] * reconstruction_loss
+            + knobs["lambda_penalty"] * wasserstein_penalty
+            + knobs["lambda_fooling_term"] * fooling_term
         )
 
         opt_encoder.zero_grad()
@@ -108,6 +129,7 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
 
         with torch.no_grad():
             collector_reconstruction_loss.append(reconstruction_loss.cpu().numpy())
+            collector_wasserstein_penalty.append(wasserstein_penalty.cpu().numpy())
             collector_fooling_term.append(fooling_term.cpu().numpy())
             collector_error_discriminator.append(error_discriminator.cpu().numpy())
             collector_heuristic_discriminator.append(
@@ -126,6 +148,9 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                 + "reconstruction_loss:\t{:0.6f} || ".format(
                     collector_reconstruction_loss.mean()
                 )
+                + "wasserstein_penalty:\t{:0.6f} || ".format(
+                    collector_wasserstein_penalty.mean()
+                )
                 + "fooling_term:\t{:0.6f} || ".format(collector_fooling_term.mean())
                 + "error_discriminator:\t{:0.6f} || ".format(
                     collector_error_discriminator.mean()
@@ -140,7 +165,14 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                 iteration,
             )
             writer.add_scalar(
-                "Fooling_Term_average_20_obs", collector_fooling_term.mean(), iteration
+                "wasserstein_penalty_average_20_obs",
+                collector_wasserstein_penalty.mean(),
+                iteration
+            )
+            writer.add_scalar(
+                "Fooling_Term_average_20_obs",
+                collector_fooling_term.mean(),
+                iteration
             )
             writer.add_scalar(
                 "Error_Discriminator_average_20_obs",
@@ -175,7 +207,7 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                             "encoder/" + k.replace(".", "/") + "/grad",
                             next(it_encoder_parameters).grad,
                             iteration,
-                            )
+                        )
                 it_decoder_parameters = decoder.parameters()
                 for k, v in decoder.state_dict().items():
                     if k.find("bias") != -1 or k.find("weight") != -1:
@@ -186,7 +218,7 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                             "decoder/" + k.replace(".", "/") + "/grad",
                             next(it_decoder_parameters).grad,
                             iteration,
-                            )
+                        )
                 it_discriminator_parameters = discriminator.parameters()
                 for k, v in discriminator.state_dict().items():
                     if k.find("bias") != -1 or k.find("weight") != -1:
@@ -197,31 +229,24 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                             "discriminator/" + k.replace(".", "/") + "/grad",
                             next(it_discriminator_parameters).grad,
                             iteration,
-                            )
-
-                num_images = 16
-                codes = encoder(batch[:num_images])
-                num_cols = 8
-                num_rows = num_images // 2
-                interpolations = []
-                for row in range(num_rows):
-                    for col, level in enumerate(
-                            torch.linspace(0, 1, num_cols).to(knobs["device"])
-                    ):
-                        interpolations.append(
-                            inv_standardize(
-                                decoder(
-                                    torch.lerp(codes[2 * row], codes[2 * row + 1], level)
-                                )
-                                .detach()
-                                .cpu()
-                            )
                         )
-                torchvision.utils.save_image(
-                    torch.stack(interpolations, dim=1).squeeze(0),
-                    fp=interpolations_dir / f'iter_{iteration}.jpg',
-                    nrow=num_rows
-                )
+
+                codes = encoder(batch[:2])
+                num_levels = 8
+                for level in torch.linspace(0, 1, num_levels).to(knobs["device"]):
+                    save_interpolations(
+                        # inv_standardize(
+                        decoder(torch.lerp(codes[0], codes[1], level).unsqueeze(0))
+                        .detach()
+                        .squeeze()
+                        .cpu()
+                        .numpy()
+                        # )
+                        ,
+                        interpolations_dir,
+                        iteration,
+                        level.cpu().numpy(),
+                    )
 
             torch.save(
                 {
@@ -240,3 +265,4 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
             decoder.train()
             discriminator.train()
 writer.close()
+

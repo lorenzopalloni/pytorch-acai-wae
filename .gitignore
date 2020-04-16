@@ -1,9 +1,16 @@
 **/data/**
+!nesmdb/data/audio_from_dir_to_csv.py
+!nesmdb/data/Dockerfile
+!nesmdb/data/download_data.sh
+!nesmdb/data/make_audio_in_pieces.py
+
 **/__pycache__/**
 **/interpolations/**
 **/checkpoints/**
 **/runs/**
 **/TODOs.txt
+**/best_models/*/**
+!**/best_models/get_configurations.sh
 
 # Created by https://www.gitignore.io/api/pycharm,jupyternotebooks
 # Edit at https://www.gitignore.io/?templates=pycharm,jupyternotebooks

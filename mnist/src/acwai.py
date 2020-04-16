@@ -49,7 +49,8 @@ collector_codes_min = Collector()
 collector_codes_max = Collector()
 if knobs["resume"]:
     writer = SummaryWriter(log_dir_last_modified)
-    checkpoint = torch.load(checkpoints_dir_last_modified)
+    checkpoint_dir = checkpoints_dir_last_modified
+    checkpoint = torch.load(checkpoint_dir)
     starting_epoch = checkpoint["epoch"]
     iteration = checkpoint["iteration"]
     encoder.load_state_dict(checkpoint["encoder_state_dict"])
@@ -60,6 +61,7 @@ if knobs["resume"]:
     opt_discriminator.load_state_dict(checkpoint["opt_discriminator_state_dict"])
 else:
     writer = SummaryWriter(log_dir_local_time)
+    checkpoint_dir = checkpoints_dir_local_time
     starting_epoch = 1
     iteration = 0
 
@@ -252,7 +254,7 @@ for epoch in range(starting_epoch, knobs["num_epochs"] + 1):
                     "opt_decoder_state_dict": opt_decoder.state_dict(),
                     "opt_discriminator_state_dict": opt_discriminator.state_dict(),
                 },
-                checkpoints_dir_local_time,
+                checkpoint_dir,
             )
             encoder.train()
             decoder.train()

@@ -1,6 +1,11 @@
 import torch
+import librosa
+import numpy as np
 
+from pathlib import Path
+from typing import Union
 from collections import deque
+
 from config import knobs
 
 
@@ -20,15 +25,15 @@ class Collector:
             return 0
         return sum(self.values) / len(self.values)
 
-    def max(self):
-        return max(self.values)
-
     def min(self):
         return min(self.values)
 
+    def max(self):
+        return max(self.values)
+
 
 def reconstruction_loss_func(x: torch.Tensor, y: torch.Tensor):
-    return torch.mean(torch.sum(torch.pow(x - y, 2), [1, 2, 3]))
+    return torch.mean(torch.sum(torch.pow(x - y, 2), [1, 2]))
 
 
 def norm22(x: torch.Tensor):
@@ -67,6 +72,33 @@ def imq_mmd_func(x, y):
     return stat
 
 
+def standardize(x: np.ndarray) -> np.ndarray:
+    # x = x / (np.abs(x).max() + 1e-8)
+    x = x - x.mean()
+    x = x / (x.std + 1e-8)
+    return x
+
+
+def inv_standardize(x: np.ndarray) -> np.ndarray:
+    x = x * (np.abs(x).max() + 1e-8)
+    x = x + x.mean()
+    return x
+
+
+def save_interpolations(
+    x: torch.tensor,
+    out_dir: Union[Path, str],
+    current_iteration,
+    current_level: float,
+    sr=8820,
+):
+    out_dir = Path(out_dir) if isinstance(out_dir, str) else out_dir
+    filename = out_dir / "iter_{0}_level_{1:.3f}.wav".format(
+        current_iteration, current_level
+    )
+    librosa.output.write_wav(filename, x, sr=sr)
+
+
 def wasserstein_penalty_func(p, q):
     def cov(x: torch.tensor) -> torch.tensor:
         x = x - torch.mean(x, dim=1, keepdim=True)
@@ -80,4 +112,13 @@ def wasserstein_penalty_func(p, q):
     third = cov_q.trace()
     fourth = 2 * torch.trace(torch.matmul(cov_p, cov_q).relu().sqrt())
     return first + second + third - fourth
+
+
+if __name__ == "__main__":
+    example_iteration = 10
+    example_level = 0.5
+    example_y = torch.randn(1, 1, 17640)
+    example_x = torch.randn(1, 1, 17640)
+    frank = torch.lerp(example_x, example_y, example_level).squeeze().cpu().numpy()
+    # save_interpolations(frank, resources_out_dir, example_iteration, example_level)
 
