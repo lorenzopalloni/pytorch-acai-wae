@@ -4,6 +4,10 @@
 !nesmdb/data/download_data.sh
 !nesmdb/data/make_audio_in_pieces.py
 
+presentation/presentation.*
+!presentation/presentation.tex
+!presentation/presentation.pdf
+
 **/__pycache__/**
 **/interpolations/**
 **/checkpoints/**
