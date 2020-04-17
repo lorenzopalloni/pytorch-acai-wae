@@ -18,10 +18,17 @@
 \usepackage{bm}
 
 %-----------------------------------------------------------------------------
+% Packages project-specified
+%-----------------------------------------------------------------------------
+\DeclareMathOperator{\Tr}{Tr}
+
+%-----------------------------------------------------------------------------
+
+%-----------------------------------------------------------------------------
 %	TITLE PAGE
 %-----------------------------------------------------------------------------
 
-\title[ML - 2019/20 - Lorenzo Palloni]{Adversarially Constrained Autoencoder Interpolations using Wasserstein Autoencoder}
+\title[ML - 2019/20 - Lorenzo Palloni]{Adversarially Constrained Autoencoder Interpolation using Wasserstein Autoencoder}
 \subtitle{Machine Learning}
 \author{Lorenzo Palloni}
 \institute[]{
@@ -50,78 +57,167 @@
 %-----------------------------------------------------------------------------
 \begin{frame}
 \frametitle{Introduction}
-  \begin{itemize}
-    \item \textbf{Unsupervised Learning} context
-    \item we aim to obtain "high-quality" \textbf{interpolations}
-    \item interpolations example:
+\begin{itemize}
+  \item \textbf{Unsupervised Learning} context
+  \medskip
+  \item We aim to obtain "high-quality" \textbf{interpolations}
+  \medskip
+  \item An interpolation example:
 \end{itemize}
-    ooo INSERT AN IMAGE HERE ooo
+\ \ \ \ \ \ $\overbrace{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }^{\text{\textit{interpolated points}}}$
+\vspace*{-\baselineskip}
+\medskip
+\begin{center}
+  \includegraphics[width=1.0\textwidth,keepaspectratio]{./figures/perfect_interpolations}
+\end{center}
+\vspace*{-\baselineskip}
+\begin{noindent}
+  \rlap{\ \ $\nwarrow$} \hfill \llap{$\nearrow$\ \ }
+\end{noindent}
+
+\begin{noindent}
+  \rlap{\textit{an endpoint}} \hfill \llap{\textit{another endpoint}}
+\end{noindent}
+\medskip
+\begin{itemize}
+  \item An "high-quality" interpolation point have two characteristics:
+  \medskip
+  \begin{itemize}
+    \item is indistinguishable from real data
+    \medskip
+    \item represent a semantically smooth morphing between the endpoints
+  \end{itemize}
+\end{itemize}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Motivation}
+\frametitle{Motivation and Techniques}
+\begin{itemize}
+  \item Uncover underlying structure of dataset
+  \item Better representations $\rightarrow$ better results in other tasks
+\end{itemize}
+\bigskip
+\begin{itemize}
+  \item Implemented techniques (using pytorch \cite{pytorch}):
   \begin{itemize}
-    \item uncover underlying structure of dataset
-    \item better representations $\rightarrow$ better results in other tasks
+    \item Adversarially Constrained Autoencoder Interpolation (ACAI) \cite{acai}
+    \medskip
+    \item Wasserstein Autoencoder (WAE) \cite{wae}
+    \medskip
+    \item Wasserstein-Wassertein Autoencoder (WWAE) \cite{wwae}
   \end{itemize}
+\end{itemize}
 \end{frame}
 %-----------------------------------------------------------------------------
-\begin{frame}
-  \begin{itemize}
-    \item An "high-quality" interpolation point have two characteristics:
-    \medskip
-      \begin{itemize}
-        \item is indistinguishable from real data
-        \medskip
-        \item represent a semantically smooth morphing between the endpoints
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Techniques implemented (using pytorch)}
-  \begin{itemize}
-    \item ACAI (Adversarially Constrained Autoencoder Interpolations)
-    \medskip
-    \item WAE (Wasserstein Autoencoder)
-    \medskip
-    \item WWAE (Wasserstein-Wassertein Autoencoder)
-  \end{itemize}
-\end{frame}
+%\begin{frame}
+%\frametitle{Techniques implemented (using pytorch)}
+%\begin{itemize}
+%  \item ACAI (Adversarially Constrained Autoencoder Interpolation)
+%  \medskip
+%  \item WAE (Wasserstein Autoencoder)
+%  \medskip
+%  \item WWAE (Wasserstein-Wassertein Autoencoder)
+%\end{itemize}
+%\end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
 \frametitle{ACAI}
-
+\begin{itemize}
+  \item Graphical representation of ACAI structure:
+\end{itemize}
+\begin{center}
+  \includegraphics[width=\textwidth,keepaspectratio]{./figures/acai_structure}
+\end{center}
+\begin{itemize}
+  \item Loss functions (discriminator and autoencoder respectively):
+\end{itemize}
+\begin{align}
+  \mathcal{L}_{d}&:=\left\|d_{\omega}\left(\hat{x}_{\alpha}\right)-\alpha\right\|^{2}+\left\|d_{\omega}\left(\gamma x+(1-\gamma) g_{\phi}\left(f_{\theta}(x)\right) \|^{2}\right.\right. \\
+  \mathcal{L}_{f, g}&:=\left\|x-g_{\phi}\left(f_{\theta}(x)\right)\right\|^{2}+\lambda\cdot\left\|d_{\omega}\left(\hat{x}_{\alpha}\right)\right\|^{2}
+\end{align}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
 \frametitle{WAE}
-
+\begin{itemize}
+  \item Graphical representation of WAE structure:
+\end{itemize}
+\begin{center}
+  \includegraphics[width=0.50\textwidth,keepaspectratio]{./figures/wae_structure}
+\end{center}
+\begin{itemize}
+  \item Loss function:
+\end{itemize}
+\begin{align*}
+  D_{WAE}(P_X, P_G) := \inf_{Q(Z|X)\in\mathcal{Q}} \mathbb{E}_{P_X}\mathbb{E}_{Q(Z|X)}\left[c(X, G(Z))\right] + \lambda \cdot \mathcal{D}_Z(Q_Z, P_Z)
+\end{align*}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
-\frametitle{WWAE}
-
+\frametitle{Different penalties, different WAEs (1/3)}
+\begin{itemize}
+  \item Setting $$ \mathcal{D}_Z(Q_Z,P_Z) = D_{JS}(Q_Z, P_Z) $$
+%  \begin{center}
+  \vspace*{-\baselineskip}
+  \item[]$\rightarrow$ we obtain WAE-GAN
+  \item[](WAE using a GAN\footnote{Generative Adversarial Network \cite{gan}}-based penalty)
+%  \end{center}
+  \bigskip
+  \item where $D_{JS}(\cdot,\cdot)$ is the Jensen-Shannon Divergence:
+  \begin{align}
+    D_{JS}(Q_Z,P_Z) := \frac{1}{2} D_{KL}(Q_Z, \frac{Q_Z + P_Z}{2})
+      + \frac{1}{2} D_{KL}(P_Z, \frac{Q_Z + P_Z}{2})
+  \end{align}
+  \item and $D_{KL}$ is the Kullback-Leibler Divergence:
+  \begin{align}
+    D_{KL}(Q_Z,P_Z) := \int Q_Z \log \left( \frac{Q_Z}{P_Z}\right )
+  \end{align}
+\end{itemize}
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Different penalties, different WAEs (2/3)}
+\begin{itemize}
+  \item Setting $$ \mathcal{D}_Z(Q_Z,P_Z) = MMD_k(Q_Z, P_Z) $$
+  \vspace*{-\baselineskip}
+  \item[]$\rightarrow$ we obtain WAE-MMD
+  \item[] (WAE with Maximum Mean Discrepancy as penalty)
+  \bigskip
+  \item where $MMD_k(\cdot,\cdot)$ is the Maximum Mean Discrepancy with \textit{characteristic} kernel $k$:
+  \begin{align*}
+    MMD_k(Q_Z,P_Z) := \Big\| \int_{\mathcal{Z}} k(z, \cdot)dQ_Z(z) -
+      \int_{\mathcal{Z}} k(z, \cdot)dP_Z(z)\Big\|_{\mathcal{H}_k}
+  \end{align*}
+\end{itemize}
+\end{frame}
+%-----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Different penalties, different WAEs (3/3)}
+\begin{itemize}
+  \item Setting $$ \mathcal{D}_Z(Q_Z,P_Z) = \underbrace{\left\| \mu_{P_Z} - \mu_{Q_Z} \right\|^2 +
+    \Tr \left( \Sigma_{P_Z} + \Sigma_{Q_Z} -
+    2(\Sigma_{P_Z}\Sigma_{Q_Z})^{\frac{1}{2}} \right)}_{\text{2-Wasserstein distance between two multivariate normal distributions \cite{frechet}}} $$
+  \item[] $\rightarrow$ we obtain WWAE
+  \item[] (WAE with 2-Wasserstein penalty)
+  \bigskip
+\end{itemize}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
 \frametitle{Results on MNIST}
-
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Problems encoutered}
-
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Other applications}
-
+\begin{itemize}
+  \item Example interpolations on MNIST with ACAI + WWAE:
+\end{itemize}
+\begin{center}
+\includegraphics[width=0.5\textwidth,keepaspectratio]{./figures/01-mnist-interpolations}
+\end{center}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
 \frametitle{Conclusion}
-
+\begin{itemize}
+  \item
+\end{itemize}
 \end{frame}
 %-----------------------------------------------------------------------------
 \begin{frame}
@@ -129,205 +225,6 @@
 
 \end{frame}
 %-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Appendix - Maximum Mean Discrepancy}
-
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Appendix - Inverse Multiquadratic kernel}
-
-\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Appendix - Frechèt distance between two Multinormals}
-
-\end{frame}
-%-----------------------------------------------------------------------------
-%
-% \begin{frame}
-% \frametitle{Entity Embedding}
-%     \begin{itemize}
-%         \item Entity Embedding
-% %        \item (during a training of a neural network model)
-%         \item maps each state of a categorical variable
-%     \end{itemize}
-%     \begin{center}
-%         $x \in \Big\{\ \text{'\textcolor{red}{red}'},\ \text{'\textcolor{green}{green}'},\ \text{'\textcolor{blue}{blue}'}\ \Big\}$
-%     \end{center}
-%     \begin{itemize}
-%         \item in a $D$-dimensional Euclidean space
-%         \item where $D \in \mathbb{N}^+$ is user-defined\footnote{$D$ might be chosen in range $[1,\ K - 1]$.}
-%     \end{itemize}
-%     \begin{center}
-%         $x \in \Big\{\ [0.5,\ -1.2],\ [1.3,\ 0.23],\ [0.4,\ 1.1]\ \Big\}$.
-%     \end{center}
-% \end{frame}
-% %-----------------------------------------------------------------------------
-% \begin{frame}
-%     \frametitle{Motivation}
-%     \begin{itemize}
-%         \item Let $x$ be a categorical variable with
-%             \begin{center}
-%                 $\mathbf{11981}$ different states.
-%             \end{center}
-%     \end{itemize}
-%     \begin{itemize}
-%         \item One Hot Encoding representation of $x$ needs
-%             \begin{center}
-%                 $\mathbf{11981}$-dimensional vectors.
-%             \end{center}
-%     \end{itemize}
-%     \begin{itemize}
-%         \item Entity Embedding representation of $x$ might be e.g.
-%             \begin{center}
-%                 $\mathbf{19}$-dimensional vectors.
-%             \end{center}
-%     \end{itemize}
-% \medskip
-%     \begin{itemize}
-%         \item Explosions in dimensionality like this leads to
-%             \begin{enumerate}
-%                 \item drop in prediction performance (overfitting);
-%                 \item computational cost in space and time.
-%             \end{enumerate}
-%     \end{itemize}
-% \end{frame}
-% %-----------------------------------------------------------------------------
-% \begin{frame}
-%     \frametitle{Experiments - Dataset}
-%     \begin{itemize}
-%         \item Dataset take from a Kaggle competition called
-%         \begin{itemize}
-%             \item[$\rightarrow$] Categorical Feature Encoding Challenge;
-%         \end{itemize}
-%         \begin{itemize}
-%             \item $300k$ observations;
-%             \item $23$ variables (all categorical);
-%             \item binary problem ($y \in \{0, 1\}$).
-%         \end{itemize}
-%         \medskip
-%         \item Dataset divided into
-%         \begin{itemize}
-%             \item 80\% $\rightarrow$ train
-%             \item 20\% $\rightarrow$ test
-%         \end{itemize}
-%     \end{itemize}
-% \end{frame}
-% %-----------------------------------------------------------------------------
-% \begin{frame}
-%     \frametitle{Experiments - Neural Network hyperparameters}
-%     \begin{itemize}
-%         \item To extract the Entity Embeddings we use the following architecture:
-%         \begin{enumerate}
-%             \item input layer: concatenation of embedded features + other variables;
-%             \item first layer: 400 hidden units and ReLU activation;
-%             \item second layer: 600 hidden units and ReLU activation;
-%             \item output layer: logistic function.
-%         \end{enumerate}
-%         \medskip
-%         \item Training hyperparameters:
-%         \begin{itemize}
-%             \item number of epochs: 2
-%             \item number of observations per mini-batch: 32
-%             \item optimization algorithm: Adam\cite{adam} (default values)
-%         \end{itemize}
-%         \medskip
-%         \item Implementation in Tensorflow\cite{tf}.
-%     \end{itemize}
-% \end{frame}
-% %-----------------------------------------------------------------------------
-% \begin{frame}
-%     \frametitle{Experiments - Random Forest hyperparameters}
-%     \begin{itemize}
-%         \item \textbf{Random search} with $4$-fold \textbf{cross-validation} on:
-%         \begin{itemize}
-%             \item number of decision trees:
-%             \begin{itemize}
-%                 \item 125
-%                 \item[$\rightarrow\bullet$] 175
-%             \end{itemize}
-%             \item maximum number of features used by each tree in each split:
-%             \begin{itemize}
-%                 \item[$\rightarrow\bullet$] 'sqrt'
-%                 \item 'log2'
-%             \end{itemize}
-%             \item max depth of each tree:
-%             \begin{itemize}
-%                 \item 10
-%                 \item[$\rightarrow\bullet$] 20
-%                 \item None
-%             \end{itemize}
-%             \item minimum number of samples needed to perform a split:
-%             \begin{itemize}
-%                 \item 2
-%                 \item[$\rightarrow\bullet$] 6
-%             \end{itemize}
-%         \end{itemize}
-%     \end{itemize}
-% \end{frame}
-% %-----------------------------------------------------------------------------
-% %-----------------------------------------------------------------------------
-% %\begin{frame}
-% %\begin{tabular}{lrrrrr}
-% %\toprule
-% %{} &             0 &             1 &  accuracy     \\
-% %\midrule
-% %precision &      0.750514 &      0.623508 &  0.731533       \\
-% %recall    &      0.918996 &      0.305136 &  0.731533       \\
-% %f1-score  &      0.826254 &      0.409747 &  0.731533       \\
-% %support   &  41677        &  18323        &  60000          \\
-% %\bottomrule
-% %\end{tabular}
-% %\end{frame}
-% %-----------------------------------------------------------------------------
-% \begin{frame}
-%     \frametitle{Experiments - Random Forest Results}
-%     \begin{table}
-%       \centering
-%       \begin{tabular}{lr}
-%         \toprule
-%         \multicolumn{2}{r}{AUC} \\
-%         \cmidrule(r){1-2}
-%         Train   & $0.9879$        \\
-%         Test    & $\bm{0.6121}$ \\
-%         \bottomrule
-%       \end{tabular}
-%       \caption{Random Forest + Entity Embeddings results.}
-%     \end{table}
-%     \begin{table}
-%       \centering
-%       \begin{tabular}{lr}
-%         \toprule
-%         \multicolumn{2}{r}{AUC} \\
-%         \cmidrule(r){1-2}
-%         Train   & $0.6818$     \\
-%         Test    & $\bm{0.5640}$ \\
-%         \bottomrule
-%       \end{tabular}
-%         \caption{Random Forest + One Hot Encoding\footnote{Variables with max 50 states used.} results.}
-%     \end{table}
-% \end{frame}
-% %\begin{tabular}{lrrr}
-% %    \begin{center}
-% %        \toprule
-% %{} &             0 &             1 &  accuracy     \\
-% %\midrule
-% %precision &      0.750514 &      0.623508 &  0.731533       \\
-% %recall    &      0.918996 &      0.305136 &  0.731533       \\
-% %f1-score  &      0.826254 &      0.409747 &  0.731533       \\
-% %support   &  41677        &  18323        &  60000          \\
-% %\bottomrule
-% %\end{tabular}
-% %\end{frame}
-%-----------------------------------------------------------------------------
-\begin{frame}
-\frametitle{Conclusion}
-\begin{itemize}
-    \item \textbf{Entity Embedding} is an useful technique to put into your \textbf{toolbox};
-    \item in some situations can lead to a \textbf{crucial} saving in computational resources.
-\end{itemize}
-\end{frame}
 %-----------------------------------------------------------------------------
 %-----------------------------------------------------------------------------
 %-----------------------------------------------------------------------------
@@ -338,9 +235,12 @@
 \frametitle{References}
 \begin{thebibliography}{99}
 
-\bibitem{guo}{Guo, C., \& Berkhahn, F. (2016). Entity embeddings of categorical variables. arXiv preprint arXiv:1604.06737.}
-\bibitem{adam}{Kingma, D. P., \& Ba, J. (2014). Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980.}
-\bibitem{tf}{Abadi, M., Barham, P., Chen, J., Chen, Z., Davis, A., Dean, J., ... \& Kudlur, M. (2016). Tensorflow: A system for large-scale machine learning. In 12th {USENIX} Symposium on Operating Systems Design and Implementation ({OSDI} 16) (pp. 265-283).}
+\bibitem{pytorch}{Paszke, Adam, et al. "Automatic differentiation in pytorch." (2017).}
+\bibitem{acai}{Berthelot, David, et al. "Understanding and improving interpolation in autoencoders via an adversarial regularizer." arXiv preprint arXiv:1807.07543 (2018).}
+\bibitem{wae}{Tolstikhin, Ilya, et al. "Wasserstein auto-encoders." arXiv preprint arXiv:1711.01558 (2017).}
+\bibitem{wwae}{Zhang, Shunkang, et al. "Wasserstein-Wasserstein auto-encoders." arXiv preprint arXiv:1902.09323 (2019).}
+\bibitem{gan}{Goodfellow, Ian, et al. "Generative adversarial nets." Advances in neural information processing systems. 2014.}
+\bibitem{frechet}{Dowson, D. C., and B. V. Landau. "The Fréchet distance between multivariate normal distributions." Journal of multivariate analysis 12.3 (1982): 450-455.}
 
 \end{thebibliography}
 
